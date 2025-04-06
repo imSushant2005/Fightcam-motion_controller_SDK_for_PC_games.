@@ -36,7 +36,7 @@ CROUCH_THRESHOLD = 0.07
 
 # Detect whether the player is standing still or moving
 previous_center_x = None
-previous_hip_y = None
+previous_hip_y = None 
 smoothed_hip_y = None
 
 # Player Calibration (Stores player's neutral pose for better detection)
@@ -46,7 +46,7 @@ calibration_done = False
 
 # Function to dynamically adjust thresholds based on player's body
 
-def calibrate_player(landmarks):
+def calibrate_player(landmarks):#sushant Rana
     global calibrated_hip_y, calibrated_stance, calibration_done
     left_hip = landmarks[mp_pose.PoseLandmark.LEFT_HIP]
     right_hip = landmarks[mp_pose.PoseLandmark.RIGHT_HIP]
@@ -64,7 +64,7 @@ while cap.isOpened():
     rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
     result = pose.process(rgb_frame)
 
-    if result.pose_landmarks:
+    if result.pose_landmarks:#bhanu yadav
         landmarks = result.pose_landmarks.landmark
         current_time = time.time()
 
@@ -100,7 +100,7 @@ while cap.isOpened():
         previous_center_x = center_x
 
         # Punch Detection
-        if current_time - last_punch_time > action_delay:
+        if current_time - last_punch_time > action_delay:#sushant vs Bhanu
             if abs(left_wrist.x - left_elbow.x) > PUNCH_THRESHOLD and left_wrist.y < left_elbow.y:
                 pydirectinput.press("x")
                 print("Left Punch!")
@@ -137,7 +137,7 @@ while cap.isOpened():
                                mp_draw.DrawingSpec(color=(0,255,0), thickness=2, circle_radius=3), 
                                mp_draw.DrawingSpec(color=(0,0,255), thickness=2))
 
-    cv2.imshow("FightCam- Tekken motion fight", frame)
+    cv2.imshow("FightCam- Tekken3 version", frame)
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
 
