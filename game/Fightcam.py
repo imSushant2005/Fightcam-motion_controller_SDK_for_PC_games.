@@ -2,8 +2,6 @@ import cv2
 import mediapipe as mp
 import pydirectinput
 import time
-import numpy as np
-from pykalman import KalmanFilter
 
 # Initialize Pose Tracking
 mp_pose = mp.solutions.pose
@@ -13,30 +11,30 @@ mp_draw = mp.solutions.drawing_utils
 # Open Webcam with Optimized Settings
 cap = cv2.VideoCapture(0)
 cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
-cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 580)
+cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
 cap.set(cv2.CAP_PROP_FPS, 60)
 
 # Motion Tracking Variables
-action_delay = 0.04  # Reduced delay for faster response
+action_delay = 0.05  # Reduced delay for faster response
 last_action_time = time.time()
 
 # Cooldown variables
-last_punch_time = 0.06
-last_kick_time = 0.06
-last_move_time = 0.06
-last_crouch_time = 0.07
-last_jump_time = 0.07
+last_punch_time = 0
+last_kick_time = 0
+last_move_time = 0
+last_crouch_time = 0
+last_jump_time = 0
 
 # Body Movement Thresholds
 PUNCH_THRESHOLD = 0.07
 KICK_THRESHOLD = 0.07
-MOVE_THRESHOLD = 0.05
-JUMP_THRESHOLD = 0.09
-CROUCH_THRESHOLD = 0.07
+MOVE_THRESHOLD = 0.07
+JUMP_THRESHOLD = 0.08
+CROUCH_THRESHOLD = 0.08
 
 # Detect whether the player is standing still or moving
 previous_center_x = None
-previous_hip_y = None 
+previous_hip_y = None
 smoothed_hip_y = None
 
 # Player Calibration (Stores player's neutral pose for better detection)
@@ -46,7 +44,7 @@ calibration_done = False
 
 # Function to dynamically adjust thresholds based on player's body
 
-def calibrate_player(landmarks):#sushant Rana
+def calibrate_player(landmarks):
     global calibrated_hip_y, calibrated_stance, calibration_done
     left_hip = landmarks[mp_pose.PoseLandmark.LEFT_HIP]
     right_hip = landmarks[mp_pose.PoseLandmark.RIGHT_HIP]
@@ -64,7 +62,7 @@ while cap.isOpened():
     rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
     result = pose.process(rgb_frame)
 
-    if result.pose_landmarks:#bhanu yadav
+    if result.pose_landmarks:
         landmarks = result.pose_landmarks.landmark
         current_time = time.time()
 
@@ -100,7 +98,7 @@ while cap.isOpened():
         previous_center_x = center_x
 
         # Punch Detection
-        if current_time - last_punch_time > action_delay:#sushant vs Bhanu
+        if current_time - last_punch_time > action_delay:
             if abs(left_wrist.x - left_elbow.x) > PUNCH_THRESHOLD and left_wrist.y < left_elbow.y:
                 pydirectinput.press("x")
                 print("Left Punch!")
@@ -123,7 +121,7 @@ while cap.isOpened():
 
         # Crouch & Jump Detection with Smoother Tracking
         smoothed_hip_y = (smoothed_hip_y * 0.84) + (left_hip.y * 0.14) if smoothed_hip_y else left_hip.y
-        if current_time - last_crouch_time > action_delay and (smoothed_hip_y - calibrated_hip_y > CROUCH_THRESHOLD * 1.1):
+        if current_time - last_crouch_time > action_delay and (smoothed_hip_y - calibrated_hip_y > CROUCH_THRESHOLD * 1.2):
             pydirectinput.press("down")
             print("Crouching!")
             last_crouch_time = current_time
@@ -137,7 +135,7 @@ while cap.isOpened():
                                mp_draw.DrawingSpec(color=(0,255,0), thickness=2, circle_radius=3), 
                                mp_draw.DrawingSpec(color=(0,0,255), thickness=2))
 
-    cv2.imshow("FightCam- Tekken3 version", frame)
+    cv2.imshow("FightCam- Tekken motion fight", frame)
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
 
